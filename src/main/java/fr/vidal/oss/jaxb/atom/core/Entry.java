@@ -1,0 +1,274 @@
+package fr.vidal.oss.jaxb.atom.core;
+
+import javax.xml.bind.annotation.XmlAnyAttribute;
+import javax.xml.bind.annotation.XmlAnyElement;
+import javax.xml.bind.annotation.XmlElement;
+import javax.xml.bind.annotation.XmlType;
+import javax.xml.bind.annotation.adapters.XmlJavaTypeAdapter;
+import javax.xml.namespace.QName;
+import java.util.*;
+import java.util.stream.Collectors;
+
+import static fr.vidal.oss.jaxb.atom.core.Preconditions.checkState;
+import static java.util.Collections.unmodifiableCollection;
+
+@XmlType(propOrder = {
+    "title", "links", "categories", "author", "contributors", "id", "publishedDate", "updateDate", "summary", "contents", "extensionElements"
+})
+public class Entry {
+
+    @XmlElement(name = "title", required = true)
+    private final String title;
+    @XmlElement(name = "summary")
+    private final Summary summary;
+    @XmlElement(name = "category")
+    private final Collection<Category> categories;
+    @XmlElement(name = "id", required = true)
+    private final String id;
+    @XmlElement(name = "published")
+    @XmlJavaTypeAdapter(DateAdapter.class)
+    private final Date publishedDate;
+    @XmlElement(name = "updated", required = true)
+    @XmlJavaTypeAdapter(DateAdapter.class)
+    private final Date updateDate;
+    @XmlElement(name = "author")
+    private final Author author;
+    @XmlElement(name = "contributor")
+    private final Collection<Contributor> contributors;
+    @XmlElement(name = "content")
+    private final Contents contents;
+    @XmlElement(name = "link", required = true)
+    private final Collection<Link> links;
+    @XmlAnyElement
+    private final Collection<ExtensionElement> extensionElements;
+    @XmlAnyAttribute
+    private final Map<QName, String> additionalAttributes;
+
+    @SuppressWarnings("unused")
+    private Entry() {
+        this(builder());
+    }
+
+    private Entry(Builder builder) {
+        extensionElements = builder.extensionElements;
+        author = builder.author;
+        contributors = builder.contributors;
+        categories = builder.categories;
+        contents = builder.contents;
+        id = builder.id;
+        links = builder.links;
+        summary = builder.summary;
+        title = builder.title;
+        publishedDate = builder.publishedDate;
+        updateDate = builder.updateDate;
+        additionalAttributes = index(builder.additionalAttributes);
+    }
+
+    public static Builder builder() {
+        return new Builder();
+    }
+
+    public String getTitle() {
+        return title;
+    }
+
+    public Summary getSummary() {
+        return summary;
+    }
+
+    public Collection<Category> getCategories() {
+        return unmodifiableCollection(categories);
+    }
+
+    public String getId() {
+        return id;
+    }
+
+    public Date getPublishedDate() {
+        return publishedDate;
+    }
+
+    public Date getUpdateDate() {
+        return updateDate;
+    }
+
+    public Author getAuthor() {
+        return author;
+    }
+
+    public Collection<Contributor> getContributors() {
+        return unmodifiableCollection(contributors);
+    }
+
+    public Contents getContents() {
+        return contents;
+    }
+
+    public Collection<Link> getLinks() {
+        return unmodifiableCollection(links);
+    }
+
+    /**
+     * @return a filtered {@link Collection} of {@link SimpleElement}
+     *
+     * @deprecated will be removed in next version. Use {@link #getExtensionElements} instead.
+     */
+    @Deprecated
+    public Collection<SimpleElement> getAdditionalElements() {
+        return getExtensionElements()
+            .stream()
+            .filter(e -> e instanceof SimpleElement)
+            .map(SimpleElement.class::cast)
+            .collect(Collectors.toList());
+    }
+
+    public Collection<ExtensionElement> getExtensionElements() {
+        return unmodifiableCollection(extensionElements);
+    }
+
+    public Map<QName, String> getAdditionalAttributes() {
+        return additionalAttributes;
+    }
+
+    @Override
+    public int hashCode() {
+        return Objects.hash(id);
+    }
+
+    @Override
+    public boolean equals(Object obj) {
+        if (this == obj) {
+            return true;
+        }
+        if (obj == null || getClass() != obj.getClass()) {
+            return false;
+        }
+        final Entry other = (Entry) obj;
+        return Objects.equals(this.id, other.id);
+    }
+
+    @Override
+    public String toString() {
+        return "Entry{" +
+            "title='" + title + '\'' +
+            ", summary=" + summary +
+            ", category=" + categories +
+            ", id='" + id + '\'' +
+            ", publishedDate=" + publishedDate +
+            ", updateDate=" + updateDate +
+            ", author=" + author +
+            ", contributors=" + contributors +
+            ", contents=" + contents +
+            ", links=" + links +
+            ", extensionElements=" + extensionElements +
+            '}';
+    }
+
+    private static Map<QName, String> index(Collection<Attribute> additionalAttributes) {
+        Map<QName, String> attributes = new HashMap<>(additionalAttributes.size());
+        for (Attribute attribute : additionalAttributes) {
+            Namespace namespace = attribute.getNamespace();
+            QName name = new QName(namespace.uri(), attribute.getName(), namespace.prefix());
+            attributes.put(name, attribute.getValue());
+        }
+        return attributes;
+    }
+
+    public static class Builder {
+
+        private String title;
+        private Summary summary;
+        private Collection<Category> categories = new LinkedHashSet<>();
+        private String id;
+        private Date publishedDate;
+        private Date updateDate;
+        private Author author;
+        private Collection<Contributor> contributors = new LinkedHashSet<>();
+        private Contents contents = Contents.EMPTY;
+        private Collection<Link> links = new LinkedHashSet<>();
+        private Collection<ExtensionElement> extensionElements = new LinkedHashSet<>();
+        private Collection<Attribute> additionalAttributes = new LinkedHashSet<>();
+
+        private Builder() {
+        }
+
+        public Builder withTitle(String title) {
+            this.title = title;
+            return this;
+        }
+
+        public Builder withSummary(Summary summary) {
+            this.summary = summary;
+            return this;
+        }
+
+        public Builder addCategory(Category category) {
+            this.categories.add(category);
+            return this;
+        }
+
+        public Builder withId(String id) {
+            this.id = id;
+            return this;
+        }
+
+        public Builder withPublishedDate(final Date publishedDate){
+            this.publishedDate = publishedDate;
+            return this;
+        }
+
+        public Builder withUpdateDate(Date updateDate){
+            this.updateDate = updateDate;
+            return this;
+        }
+
+        public Builder withAuthor(Author author) {
+            this.author = author;
+            return this;
+        }
+
+        public Builder addContributor(Contributor contributor) {
+            this.contributors.add(contributor);
+            return this;
+        }
+
+        public Builder withContents(Contents contents) {
+            this.contents = contents;
+            return this;
+        }
+
+        public Builder addLink(Link link) {
+            this.links.add(link);
+            return this;
+        }
+
+        /**
+         * @param simpleElement a {@link SimpleElement} to add
+         * @return the current {@link Builder}
+         *
+         * @deprecated will be removed in next version. Use {@link #addExtensionElement} instead.
+         */
+        @Deprecated
+        public Builder addSimpleElement(SimpleElement simpleElement) {
+            return addExtensionElement(simpleElement);
+        }
+
+        public Builder addExtensionElement(ExtensionElement extensionElement) {
+            this.extensionElements.add(extensionElement);
+            return this;
+        }
+
+        public Builder addAttribute(Attribute attribute) {
+            this.additionalAttributes.add(attribute);
+            return this;
+        }
+
+        public Entry build() {
+            checkState(title != null, "title is mandatory");
+            checkState(id != null, "id is mandatory");
+            checkState(updateDate != null, "updateDate is mandatory");
+            checkState(!links.isEmpty(), "links cannot be empty");
+            return new Entry(this);
+        }
+    }
+}

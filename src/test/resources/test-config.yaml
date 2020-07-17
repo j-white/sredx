@@ -1,0 +1,19 @@
+---
+jira:
+  url: https://jira.myorg.org
+  username: my-user
+  password: xxxx
+users:
+  - name: First Last
+    jira-user: my-user
+    email:
+      - me@myorg.com
+projects:
+  - name: project
+    code: PROJ2
+    start-date: 2019-01-01T00:00:00Z
+    end-date: 2019-05-01T00:00:00Z
+    jira-projects:
+      - PROJ
+    git-repositories:
+      - /home/me/git/my/.git
