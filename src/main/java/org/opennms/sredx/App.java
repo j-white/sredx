@@ -130,6 +130,7 @@ public class App {
 
             // We now have all the Git & JIRA activity for all the users in the project, let's save it to a .csv file
             activities.sort(Comparator.comparing(Activity::getTimestamp));
+            File outputFile = new File("out.csv");
             try {
                 final CSVPrinter printer = CSVFormat.DEFAULT.withHeader(
                         "Project",
@@ -137,11 +138,12 @@ public class App {
                         "User",
                         "Type",
                         "ID",
-                        "Summary").print(new File("out.csv"), StandardCharsets.UTF_8);
+                        "Summary").print(outputFile, StandardCharsets.UTF_8);
                 for (Activity activity : activities) {
                     printer.printRecord(activity.getProject().getCode(), activity.getTimestamp(), activity.getUser().getName(), activity.getType(), activity.getId(), activity.getSummary());
                 }
                 printer.close(true);
+                System.out.println("Successfully output results to: " + outputFile);
             } catch (IOException e) {
                 e.printStackTrace();
             }
